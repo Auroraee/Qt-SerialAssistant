@@ -1,7 +1,5 @@
 #include "serialportmanager.h"
 
-#include <QSerialPortInfo>
-
 SerialPortManager::SerialPortManager(QObject *parent)
     : QObject(parent)
     , m_serialPort(new QSerialPort(this))
@@ -96,6 +94,11 @@ void SerialPortManager::setAutoSendEnabled(bool enabled, int intervalMs)
 
     if (intervalMs <= 0) {
         emit errorOccurred(tr("定时发送间隔必须大于 0 ms"));
+        return;
+    }
+
+    if (!m_serialPort->isOpen()) {
+        emit errorOccurred(tr("串口未打开，无法启动定时发送"));
         return;
     }
 
