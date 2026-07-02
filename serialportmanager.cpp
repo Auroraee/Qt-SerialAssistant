@@ -1,5 +1,7 @@
 #include "serialportmanager.h"
 
+#include <QSignalBlocker>
+
 SerialPortManager::SerialPortManager(QObject *parent)
     : QObject(parent)
     , m_serialPort(new QSerialPort(this))
@@ -40,6 +42,7 @@ void SerialPortManager::open(const QString &portName, int baudRate)
     m_serialPort->setStopBits(QSerialPort::OneStop);
     m_serialPort->setFlowControl(QSerialPort::NoFlowControl);
 
+    QSignalBlocker blocker(m_serialPort);
     if (!m_serialPort->open(QIODevice::ReadWrite)) {
         emit errorOccurred(tr("无法打开串口 %1: %2")
                            .arg(portName, m_serialPort->errorString()));

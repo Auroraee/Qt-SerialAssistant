@@ -154,12 +154,14 @@ void MainWindow::appendReceiveData(const QByteArray &data)
     }
 
     ui->plainTextEditReceive->moveCursor(QTextCursor::End);
-    ui->plainTextEditReceive->insertPlainText(text + QStringLiteral(" "));
+    ui->plainTextEditReceive->insertPlainText(text);
     ui->plainTextEditReceive->moveCursor(QTextCursor::End);
 }
 
 void MainWindow::onErrorOccurred(const QString &message)
 {
+    if (ui->checkBoxAutoSend->isChecked())
+        ui->checkBoxAutoSend->setChecked(false);
     QMessageBox::critical(this, tr("串口错误"), message);
 }
 
@@ -199,7 +201,17 @@ QByteArray MainWindow::buildSendData(bool showErrors)
         return data;
     }
 
-    return input.toUtf8();
+    // ASCII 模式
+    for (const QChar &ch : input) {
+        if (ch.unicode() > 0xFF) {
+            if (showErrors) {
+                QMessageBox::warning(this, tr("警告"),
+                                     tr("ASCII 模式下不能包含非 ASCII/Latin1 字符"));
+            }
+            return QByteArray();
+        }
+    }
+    return input.toLatin1();
 }
 
 void MainWindow::on_checkBoxAutoSend_stateChanged(int state)

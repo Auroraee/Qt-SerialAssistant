@@ -34,3 +34,6 @@ qmake_qmake_qm_files.qrc
 *.lib
 *.so
 *.dylib
+.claude/
+.worktrees/
+aqtinstall.log
