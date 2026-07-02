@@ -1,4 +1,4 @@
-QT += widgets
+QT += core gui widgets serialport
 
 CONFIG += c++17
 
@@ -8,10 +8,14 @@ CONFIG += c++17
 
 SOURCES += \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    serialportmanager.cpp \
+    utils.cpp
 
 HEADERS += \
-    mainwindow.h
+    mainwindow.h \
+    serialportmanager.h \
+    utils.h
 
 FORMS += \
     mainwindow.ui
