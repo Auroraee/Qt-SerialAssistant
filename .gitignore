@@ -1,5 +1,9 @@
 /build/
 /.superpowers/
+/.codegraph/
+/.agents/
+/.qm/
+/.qtcreator/
 *.user
 *.user.*
 
