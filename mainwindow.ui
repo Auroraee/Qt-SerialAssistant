@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>980</width>
+    <height>680</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -40,6 +40,46 @@
          <bool>true</bool>
         </property>
        </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="labelDataBits">
+        <property name="text">
+         <string>数据位</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="comboBoxDataBits"/>
+      </item>
+      <item>
+       <widget class="QLabel" name="labelParity">
+        <property name="text">
+         <string>校验位</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="comboBoxParity"/>
+      </item>
+      <item>
+       <widget class="QLabel" name="labelStopBits">
+        <property name="text">
+         <string>停止位</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="comboBoxStopBits"/>
+      </item>
+      <item>
+       <widget class="QLabel" name="labelFlowControl">
+        <property name="text">
+         <string>流控</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="comboBoxFlowControl"/>
       </item>
       <item>
        <widget class="QPushButton" name="pushButtonOpen">
@@ -142,6 +182,12 @@
         <property name="orientation">
          <enum>Qt::Vertical</enum>
         </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
        </spacer>
       </item>
      </layout>
@@ -149,11 +195,53 @@
     <item>
      <layout class="QVBoxLayout" name="commLayout">
       <item>
-       <widget class="QLabel" name="labelReceive">
-        <property name="text">
-         <string>接收区</string>
-        </property>
-       </widget>
+       <layout class="QHBoxLayout" name="receiveHeaderLayout">
+        <item>
+         <widget class="QLabel" name="labelReceive">
+          <property name="text">
+           <string>接收区</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="receiveHeaderSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+        </spacer>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkBoxAutoScroll">
+          <property name="text">
+           <string>自动滚动</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButtonExportLog">
+          <property name="text">
+           <string>导出日志</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButtonClearReceive">
+          <property name="text">
+           <string>清空</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButtonClearCounters">
+          <property name="text">
+           <string>清零计数</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
        <widget class="QPlainTextEdit" name="plainTextEditReceive">
@@ -168,6 +256,31 @@
        </widget>
       </item>
       <item>
+       <layout class="QHBoxLayout" name="counterLayout">
+        <item>
+         <widget class="QLabel" name="labelRxCount">
+          <property name="text">
+           <string>RX: 0 B</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="labelTxCount">
+          <property name="text">
+           <string>TX: 0 B</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="counterSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
        <layout class="QHBoxLayout" name="sendLayout">
         <item>
          <widget class="QLineEdit" name="lineEditSend"/>
@@ -178,6 +291,30 @@
            <string>发送</string>
           </property>
          </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="sendOptionsLayout">
+        <item>
+         <widget class="QLabel" name="labelLineEnding">
+          <property name="text">
+           <string>结尾</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="comboBoxLineEnding"/>
+        </item>
+        <item>
+         <widget class="QLabel" name="labelSendHistory">
+          <property name="text">
+           <string>历史</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="comboBoxSendHistory"/>
         </item>
        </layout>
       </item>
@@ -211,6 +348,16 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="checkBoxAutoSendEcho">
+          <property name="text">
+           <string>定时回显</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="horizontalSpacer">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -218,6 +365,78 @@
          </spacer>
         </item>
        </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="labelQuickSend">
+        <property name="text">
+         <string>快捷发送</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QGridLayout" name="quickSendLayout">
+        <item row="0" column="0">
+         <widget class="QLineEdit" name="lineEditQuickSend1"/>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="pushButtonQuickSend1">
+          <property name="text">
+           <string>发送</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLineEdit" name="lineEditQuickSend2"/>
+        </item>
+        <item row="1" column="1">
+         <widget class="QPushButton" name="pushButtonQuickSend2">
+          <property name="text">
+           <string>发送</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="labelChecksumTool">
+        <property name="text">
+         <string>校验计算</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="checksumInputLayout">
+        <item>
+         <widget class="QLabel" name="labelChecksumFormat">
+          <property name="text">
+           <string>格式</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="comboBoxChecksumFormat"/>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineEditChecksumInput"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButtonCalculateChecksum">
+          <property name="text">
+           <string>计算</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="labelChecksumResult">
+        <property name="text">
+         <string>CRC16(MODBUS): --    Parity: --</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>

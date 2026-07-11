@@ -1,10 +1,13 @@
 #include "serialportmanager.h"
 
+#include "asyncwritequeue.h"
+
 #include <QSignalBlocker>
 
 SerialPortManager::SerialPortManager(QObject *parent)
     : QObject(parent)
     , m_serialPort(new QSerialPort(this))
+    , m_writeQueue(new AsyncWriteQueue(m_serialPort, this))
     , m_autoSendTimer(new QTimer(this))
 {
     connect(m_serialPort, &QSerialPort::readyRead,
@@ -13,6 +16,13 @@ SerialPortManager::SerialPortManager(QObject *parent)
             this, &SerialPortManager::onErrorOccurred);
     connect(m_autoSendTimer, &QTimer::timeout,
             this, &SerialPortManager::onAutoSendTimeout);
+    connect(m_writeQueue, &AsyncWriteQueue::writeCompleted,
+            this, &SerialPortManager::writeCompleted);
+    connect(m_writeQueue, &AsyncWriteQueue::writeFailed,
+            this, [this](quint64 id, const QString &message) {
+                emit writeFailed(id, message);
+                emit errorOccurred(message);
+            });
 }
 
 SerialPortManager::~SerialPortManager()
@@ -25,27 +35,33 @@ bool SerialPortManager::isOpen() const
     return m_serialPort->isOpen();
 }
 
-void SerialPortManager::open(const QString &portName, int baudRate)
+void SerialPortManager::open(const SerialPortConfig &config)
 {
     if (m_serialPort->isOpen()) {
-        if (m_serialPort->portName() == portName &&
-            m_serialPort->baudRate() == baudRate) {
+        if (m_serialPort->portName() == config.portName &&
+            m_serialPort->baudRate() == config.baudRate &&
+            m_serialPort->dataBits() == config.dataBits &&
+            m_serialPort->parity() == config.parity &&
+            m_serialPort->stopBits() == config.stopBits &&
+            m_serialPort->flowControl() == config.flowControl) {
             return;
         }
         close();
     }
 
-    m_serialPort->setPortName(portName);
-    m_serialPort->setBaudRate(baudRate);
-    m_serialPort->setDataBits(QSerialPort::Data8);
-    m_serialPort->setParity(QSerialPort::NoParity);
-    m_serialPort->setStopBits(QSerialPort::OneStop);
-    m_serialPort->setFlowControl(QSerialPort::NoFlowControl);
+    m_serialPort->setPortName(config.portName);
+    m_serialPort->setBaudRate(config.baudRate);
+    m_serialPort->setDataBits(config.dataBits);
+    m_serialPort->setParity(config.parity);
+    m_serialPort->setStopBits(config.stopBits);
+    m_serialPort->setFlowControl(config.flowControl);
 
     QSignalBlocker blocker(m_serialPort);
     if (!m_serialPort->open(QIODevice::ReadWrite)) {
-        emit errorOccurred(tr("无法打开串口 %1: %2")
-                           .arg(portName, m_serialPort->errorString()));
+        const QString message = tr("无法打开串口 %1: %2")
+                                    .arg(config.portName, m_serialPort->errorString());
+        emit errorOccurred(message);
+        emit criticalErrorOccurred(message);
         return;
     }
 
@@ -55,38 +71,28 @@ void SerialPortManager::open(const QString &portName, int baudRate)
 void SerialPortManager::close()
 {
     m_autoSendTimer->stop();
+    if (m_writeQueue->pendingCount() > 0)
+        m_writeQueue->abortAll(tr("串口已关闭，待发送数据已取消"));
     if (m_serialPort->isOpen()) {
         m_serialPort->close();
         emit connectionStateChanged(false);
     }
 }
 
-void SerialPortManager::sendData(const QByteArray &data)
+quint64 SerialPortManager::enqueueWrite(const QByteArray &data)
+{
+    return m_writeQueue->enqueue(data);
+}
+
+bool SerialPortManager::sendData(const QByteArray &data)
 {
     if (!m_serialPort->isOpen()) {
         emit errorOccurred(tr("串口未打开"));
-        return;
+        return false;
     }
 
-    if (data.isEmpty())
-        return;
-
-    qint64 totalWritten = 0;
-    while (totalWritten < data.size()) {
-        qint64 written = m_serialPort->write(data.mid(totalWritten));
-        if (written == -1) {
-            emit errorOccurred(tr("发送失败: %1").arg(m_serialPort->errorString()));
-            return;
-        }
-        if (written == 0) {
-            if (!m_serialPort->waitForBytesWritten(100)) {
-                emit errorOccurred(tr("发送超时: %1").arg(m_serialPort->errorString()));
-                return;
-            }
-            continue;
-        }
-        totalWritten += written;
-    }
+    enqueueWrite(data);
+    return true;
 }
 
 void SerialPortManager::setAutoSendEnabled(bool enabled, int intervalMs)
@@ -121,9 +127,11 @@ void SerialPortManager::onErrorOccurred(QSerialPort::SerialPortError error)
     if (error == QSerialPort::NoError)
         return;
 
-    emit errorOccurred(m_serialPort->errorString());
+    const QString message = m_serialPort->errorString();
+    emit errorOccurred(message);
 
     if (error == QSerialPort::ResourceError) {
+        emit criticalErrorOccurred(message);
         close();
     }
 }

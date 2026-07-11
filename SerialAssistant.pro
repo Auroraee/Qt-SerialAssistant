@@ -7,14 +7,25 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    asyncwritequeue.cpp \
+    frameassembler.cpp \
+    framelogmodel.cpp \
     main.cpp \
     mainwindow.cpp \
+    modbusrtudecoder.cpp \
     serialportmanager.cpp \
+    serialsessioncontroller.cpp \
     utils.cpp
 
 HEADERS += \
+    asyncwritequeue.h \
+    frameassembler.h \
+    framelogmodel.h \
+    frametypes.h \
     mainwindow.h \
+    modbusrtudecoder.h \
     serialportmanager.h \
+    serialsessioncontroller.h \
     utils.h
 
 FORMS += \

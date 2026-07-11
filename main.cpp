@@ -1,21 +1,24 @@
 #include "mainwindow.h"
 
 #include <QApplication>
-#include <QLocale>
+#include <QSettings>
 #include <QTranslator>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    QApplication::setOrganizationName(QStringLiteral("SerialAssistant"));
+    QApplication::setApplicationName(QStringLiteral("SerialAssistant"));
 
     QTranslator translator;
-    const QStringList uiLanguages = QLocale::system().uiLanguages();
-    for (const QString &locale : uiLanguages) {
-        const QString baseName = "SerialAssistant_" + QLocale(locale).name();
-        if (translator.load(":/i18n/" + baseName)) {
-            a.installTranslator(&translator);
-            break;
-        }
+    QSettings settings;
+    settings.beginGroup(QStringLiteral("Application"));
+    const QString language = settings.value(QStringLiteral("language"),
+                                            QStringLiteral("zh_CN")).toString();
+    settings.endGroup();
+    if (language == QLatin1String("en_US")
+        && translator.load(QStringLiteral(":/i18n/SerialAssistant_en_US"))) {
+        a.installTranslator(&translator);
     }
     MainWindow w;
     w.show();
